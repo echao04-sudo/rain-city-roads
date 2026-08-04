@@ -95,6 +95,22 @@ def plot_scatter(df, xcol, ycol, xlabel, ylabel, title, fname):
     plt.close(fig)
 
 
+def check_assumptions(wc, full):
+    """Verify assumptions for planned statistical tests."""
+    wc = wc.dropna(subset=['PRCP'])
+    rainy = wc[wc['PRCP'] > 0]['crashes']
+    dry = wc[wc['PRCP'] == 0]['crashes']
+    print('t-test groups: rainy n =', len(rainy),
+          'dry n =', len(dry))
+    print('rainy mean/std:', rainy.mean(), rainy.std())
+    print('dry mean/std:', dry.mean(), dry.std())
+    full = full.dropna(subset=['PRCP'])
+    full['rainy'] = full['PRCP'] > 0
+    table = full.groupby('rainy')[['bike_crashes', 'crashes']].sum()
+    print('chi-square table (check counts >= 5):')
+    print(table)
+
+
 def main():
     weather = load_weather('data/NOAA.csv')
     fremont = load_bridge(
@@ -122,6 +138,7 @@ def main():
                  'Bridge crossings per day',
                  'Temperature vs Daily Bike Ridership',
                  'tmax_vs_riders.png')
+    check_assumptions(wc, full)
 
 
 if __name__ == '__main__':
