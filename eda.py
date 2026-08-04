@@ -5,6 +5,9 @@ Loads collision, bike counter, and weather data,
 aggregates everything to daily totals, and joins them.
 """
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt  # noqa: E402
 
 
 def load_weather(path):
@@ -18,6 +21,9 @@ def load_weather(path):
 def load_bridge(path, total_col):
     """Load an hourly bridge counter file and sum counts per day."""
     df = pd.read_csv(path)
+    df[total_col] = pd.to_numeric(
+        df[total_col].astype(str).str.replace(',', ''),
+        errors='coerce')
     df['date'] = pd.to_datetime(
         df['Date'], format='mixed').dt.normalize()
     daily = df.groupby('date')[total_col].sum().reset_index()
@@ -54,6 +60,41 @@ def build_tables(weather, fremont, spokane, collisions):
     return wc, wb, full
 
 
+def summarize(name, df):
+    """Print size, missingness, and summary stats for a table."""
+    print('=====', name, '=====')
+    print('shape:', df.shape)
+    print('missing values per column:')
+    print(df.isnull().sum())
+    print('summary of variables:')
+    print(df.describe().to_string())
+    print()
+
+
+def plot_rainy_vs_dry(wc):
+    """Bar chart: average daily crashes, rainy vs dry days."""
+    wc = wc.dropna(subset=['PRCP'])
+    wc['rainy'] = wc['PRCP'] > 0
+    means = wc.groupby('rainy')['crashes'].mean()
+    fig, ax = plt.subplots()
+    ax.bar(['Dry', 'Rainy'], [means[False], means[True]])
+    ax.set_ylabel('Average crashes per day')
+    ax.set_title('Average Daily Collisions: Rainy vs Dry Days')
+    fig.savefig('plots/rainy_vs_dry.png', bbox_inches='tight')
+    plt.close(fig)
+
+
+def plot_scatter(df, xcol, ycol, xlabel, ylabel, title, fname):
+    """Generic scatter plot saved to plots/."""
+    fig, ax = plt.subplots()
+    ax.scatter(df[xcol], df[ycol], s=5, alpha=0.3)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    fig.savefig('plots/' + fname, bbox_inches='tight')
+    plt.close(fig)
+
+
 def main():
     weather = load_weather('data/NOAA.csv')
     fremont = load_bridge(
@@ -63,15 +104,24 @@ def main():
                           'Spokane St. Bridge Total')
     collisions = load_collisions('data/SDOT.csv')
 
-    print('weather:', weather.shape)
-    print('fremont:', fremont.shape)
-    print('spokane:', spokane.shape)
-    print('collisions:', collisions.shape)
-
     wc, wb, full = build_tables(weather, fremont, spokane, collisions)
-    print('weather+collisions:', wc.shape)
-    print('weather+bikes:', wb.shape)
-    print('full:', full.shape)
+
+    summarize('weather + collisions', wc)
+    summarize('weather + bikes', wb)
+    summarize('full (all four)', full)
+
+    plot_rainy_vs_dry(wc)
+    plot_scatter(wc, 'PRCP', 'crashes', 'Precipitation (in)',
+                 'Crashes per day', 'Precipitation vs Daily Collisions',
+                 'prcp_vs_crashes.png')
+    plot_scatter(wb, 'PRCP', 'riders', 'Precipitation (in)',
+                 'Bridge crossings per day',
+                 'Precipitation vs Daily Bike Ridership',
+                 'prcp_vs_riders.png')
+    plot_scatter(wb, 'TMAX', 'riders', 'High temperature (F)',
+                 'Bridge crossings per day',
+                 'Temperature vs Daily Bike Ridership',
+                 'tmax_vs_riders.png')
 
 
 if __name__ == '__main__':
