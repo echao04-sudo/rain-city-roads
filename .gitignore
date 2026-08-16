@@ -1,3 +1,5 @@
-data/
 __pycache__/
 .DS_Store
+.ipynb_checkpoints/
+data/*.csv
+!data/test_*.csv

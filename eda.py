@@ -1,5 +1,5 @@
 """
-Rain City Roads - EDA
+Rain City Roads: EDA
 Elsa Chao, CSE 163
 Loads collision, bike counter, and weather data,
 aggregates everything to daily totals, and joins them.
