@@ -18,8 +18,6 @@ You need Python 3.9 or newer and three libraries:
 pip install pandas scipy matplotlib
 ```
 
-flake8 is optional, only if you want to check the style.
-
 ## Data
 
 The data files are way too big to put in here so you have to download them
@@ -67,10 +65,7 @@ Once your four data files are in place, from the project root just run:
 python analysis.py
 ```
 
-Give it a few seconds, the collisions file has 261,009 rows in it so it takes
-a moment to load. It prints out the numbers for all four questions and saves
-five figures into a `plots` folder. If you don't have a plots folder it makes
-one for you.
+Give it a few seconds, the collisions file has 261,009 rows in it so it takes a moment to load. It prints out the numbers for all four questions and saves five figures into a plots folder. If you don't have a plots folder it makes one for you. The five that start with rq are the ones in my report: rq1_rainy_vs_dry.png is Figure 1, rq2_first_rain.png is Figure 2, rq3_rain_vs_ridership.png is Figure 3, rq3_ridership_by_band.png is Figure 4, and rq4_bike_risk.png is Figure 5.
 
 For the tests:
 
